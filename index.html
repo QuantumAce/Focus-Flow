@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!--Author QuantumAce-->
+    <meta charset="UTF-8">
+    <title>🚀 FocusFlow - Your Learning Companion</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6e45e2;
+            --secondary-color: #88d3ce;
+            --background-gradient: linear-gradient(45deg, #6e45e2, #88d3ce);
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--background-gradient);
+            color: white;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        .study-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            transition: transform 0.3s ease;
+        }
+        .study-card:hover {
+            transform: scale(1.02);
+        }
+        .timer {
+            font-size: 2.5em;
+            font-weight: 600;
+            color: #fff;
+            margin: 20px 0;
+        }
+        button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            margin: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+        }
+        .motivational-quote {
+            font-style: italic;
+            opacity: 0.7;
+            margin: 20px 0;
+        }
+        .streak-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌟 FocusFlow</h1>
+        <p class="motivational-quote" id="quote">Your journey to success starts here!</p>
+
+        <div class="study-card">
+            <h2>🕰️ Study Timer</h2>
+            <div class="timer" id="studyTimer">00:00:00</div>
+            <button onclick="toggleStudyTimer()">Start/Pause</button>
+            <button onclick="resetStudyTimer()">Reset</button>
+        </div>
+
+        <div class="study-card">
+            <h2>🍅 Pomodoro Mode</h2>
+            <div class="timer" id="pomodoroTimer">25:00</div>
+            <button onclick="startPomodoro()">Focus Session</button>
+            <button onclick="startBreak()">Quick Break</button>
+        </div>
+
+        <div class="study-card">
+            <h2>📝 Task Tracker</h2>
+            <input type="text" id="taskInput" placeholder="What are you studying?">
+            <input type="number" id="studyDuration" placeholder="Estimated study time (mins)">
+            <button onclick="addTask()">Add Task</button>
+            <div id="taskList"></div>
+        </div>
+
+        <div class="study-card">
+            <h2>🏆 Your Progress</h2>
+            <div class="streak-badge" id="studyStreak">🔥 Study Streak: 0 days</div>
+        </div>
+    </div>
+
+    <script>
+        // Motivational Quotes Array
+        const motivationalQuotes = [
+            "Every study session brings you closer to your dreams! 💪",
+            "Small progress is still progress. Keep going! 🚀",
+            "You're capable of amazing things! Believe in yourself. ✨",
+            "Learning is a superpower. Use it wisely! 🦸‍♀️"
+        ];
+
+        // State Management
+        let studyTimer = {
+            seconds: 0,
+            isRunning: false,
+            interval: null
+        };
+
+        let studyData = {
+            tasks: [],
+            totalStudyTime: 0,
+            streak: 0
+        };
+
+        // Timer Functions
+        function toggleStudyTimer() {
+            if (!studyTimer.isRunning) {
+                studyTimer.isRunning = true;
+                studyTimer.interval = setInterval(() => {
+                    studyTimer.seconds++;
+                    updateTimerDisplay();
+                }, 1000);
+            } else {
+                clearInterval(studyTimer.interval);
+                studyTimer.isRunning = false;
+            }
+        }
+
+        function resetStudyTimer() {
+            clearInterval(studyTimer.interval);
+            studyTimer.seconds = 0;
+            studyTimer.isRunning = false;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const hours = Math.floor(studyTimer.seconds / 3600);
+            const minutes = Math.floor((studyTimer.seconds % 3600) / 60);
+            const secs = studyTimer.seconds % 60;
+            document.getElementById('studyTimer').textContent = 
+                `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function addTask() {
+            const taskName = document.getElementById('taskInput').value;
+            const duration = document.getElementById('studyDuration').value;
+
+            if (taskName && duration) {
+                studyData.tasks.push({
+                    name: taskName,
+                    duration: parseInt(duration),
+                    completed: false
+                });
+                updateTaskList();
+                updateStreak();
+            }
+        }
+
+        function updateTaskList() {
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = studyData.tasks.map((task, index) => `
+                <div>
+                    ${task.name} (${task.duration} mins)
+                    <button onclick="completeTask(${index})">✅</button>
+                </div>
+            `).join('');
+        }
+
+        function completeTask(index) {
+            studyData.tasks[index].completed = true;
+            studyData.totalStudyTime += studyData.tasks[index].duration;
+            updateTaskList();
+            updateStreak();
+        }
+
+        function updateStreak() {
+            studyData.streak++;
+            document.getElementById('studyStreak').textContent = 
+                `🔥 Study Streak: ${studyData.streak} days`;
+        }
+
+        function startPomodoro() {
+            // 25-minute focus session
+            let timeLeft = 25 * 60;
+            const pomodoroTimer = document.getElementById('pomodoroTimer');
+            
+            const interval = setInterval(() => {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                
+                pomodoroTimer.textContent = 
+                    `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    alert("Great job! Time for a break 🎉");
+                }
+                
+                timeLeft--;
+            }, 1000);
+        }
+
+        function startBreak() {
+            // 5-minute break
+            let timeLeft = 5 * 60;
+            const pomodoroTimer = document.getElementById('pomodoroTimer');
+            
+            const interval = setInterval(() => {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                
+                pomodoroTimer.textContent = 
+                    `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    alert("Break's over! Back to studying 💪");
+                }
+                
+                timeLeft--;
+            }, 1000);
+        }
+
+        // Random Quote Generator
+        function updateMotivationalQuote() {
+            const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+            document.getElementById('quote').textContent = randomQuote;
+        }
+
+        // Initialize App
+        updateTimerDisplay();
+        updateMotivationalQuote();
+        setInterval(updateMotivationalQuote, 10000); // Change quote every 10 seconds
+    </script>
+</body>
+</html>
